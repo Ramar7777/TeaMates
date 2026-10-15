@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Management Console | TEA MATES</title>
+    <link rel="icon" type="image/png" href="../assets/images/logo-circle.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'tea-yellow': '#FFC107',
+                        'tea-yellow-light': '#FFD54F',
+                        'tea-yellow-dark': '#FFA000',
+                        'tea-amber': '#F59E0B',
+                        'tea-pitch': '#09090b',
+                        'tea-dark': '#111115',
+                        'tea-card': '#18181f',
+                        'tea-border': '#272733',
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <style>
+        .active-tab {
+            background-color: #FFC107 !important;
+            color: #09090b !important;
+            font-weight: 700 !important;
+            border-color: #FFC107 !important;
+        }
+        .active-tab i {
+            color: #09090b !important;
+        }
+        .active-bottom-tab {
+            color: #FFC107 !important;
+        }
+    </style>
+</head>
+<body class="bg-tea-pitch text-zinc-100 antialiased selection:bg-tea-yellow selection:text-black min-h-screen">
+
+    <!-- ========================================== -->
+    <!-- 1. LOGIN / LOCK SCREEN GATING MODAL        -->
+    <!-- ========================================== -->
+    <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-tea-pitch/98 backdrop-blur-2xl px-4 py-8">
+        <div class="relative w-full max-w-md bg-tea-card border-2 border-tea-yellow/40 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-tea-yellow/10 overflow-hidden">
+            <!-- Ambient Glow -->
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-tea-yellow/20 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="relative z-10 text-center space-y-4">
+                <!-- Circular Logo Badge -->
+                <div class="w-20 h-20 mx-auto rounded-full p-1 bg-gradient-to-br from-tea-yellow via-amber-400 to-amber-600 shadow-xl shadow-tea-yellow/30">
+                    <img src="../assets/images/logo-circle.png" alt="TEA MATES Logo" class="w-full h-full rounded-full object-cover bg-tea-yellow">
+                </div>
+
+                <div>
+                    <h1 class="font-display font-black text-2xl sm:text-3xl text-white tracking-tight">
+                        TEA <span class="text-tea-yellow">MATES</span>
+                    </h1>
+                    <p class="text-xs font-semibold text-tea-yellow tracking-widest uppercase mt-0.5">Admin Management Console</p>
+                    <p class="text-xs text-zinc-400 mt-2">Enter master password to access store management, menu pricing, leads, and website controls.</p>
+                </div>
+
+                <!-- Password Form -->
+                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4 pt-2 text-left">
+                    <div>
+                        <label for="admin-pass" class="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5">
+                            Master Admin Password
+                        </label>
+                        <div class="relative">
+                            <input type="password" id="admin-pass" required autofocus placeholder="Enter password..."
+                                class="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-tea-yellow text-sm pr-11 transition-all">
+                            <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white p-1">
+                                <i id="pass-eye-icon" class="fa-regular fa-eye text-sm"></i>
+                            </button>
+                        </div>
+                        <p id="login-error" class="hidden text-xs text-rose-400 font-semibold mt-1.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-exclamation"></i> Incorrect password. Please try again.
+                        </p>
+                    </div>
+
+                    <button type="submit" class="w-full btn-yellow py-3.5 rounded-xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-tea-yellow/30 active:scale-[0.98] transition-all">
+                        <i class="fa-solid fa-lock-open text-xs"></i> Unlock Admin Console
+                    </button>
+                </form>
+
+                <div class="pt-4 border-t border-zinc-800 flex items-center justify-between text-xs text-zinc-400">
+                    <a href="/" class="hover:text-tea-yellow transition-colors flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-left text-[10px]"></i> Back to Website
+                    </a>
+                    <span class="text-[11px] text-zinc-500">Authorized Personnel Only</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. MAIN ADMIN DASHBOARD (Hidden till auth)  -->
+    <!-- ========================================== -->
+    <div id="admin-dashboard" class="hidden min-h-screen flex flex-col pb-20 md:pb-0">
+
+        <!-- Top Header Navigation -->
+        <header class="sticky top-0 z-40 bg-tea-pitch/95 border-b border-tea-border/80 backdrop-blur-xl">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+                
+                <!-- Left: Brand Logo & Title -->
+                <div class="flex items-center gap-3">
+                    <a href="/admin" class="flex items-center gap-2.5">
+                        <img src="../assets/images/logo-circle.png" alt="TEA MATES Logo" class="w-9 h-9 rounded-full object-cover ring-2 ring-tea-yellow/80 bg-tea-yellow">
+                        <div>
+                            <span class="font-display font-black text-lg text-white leading-none flex items-center gap-1.5">
+                                TEA <span class="text-tea-yellow">MATES</span>
+                                <span class="bg-tea-yellow/20 text-tea-yellow text-[9px] font-black uppercase px-1.5 py-0.5 rounded border border-tea-yellow/30">Admin</span>
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Center: Sync Status Indicator -->
+                <div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="sync-status">Live Connected</span>
+                </div>
+
+                <!-- Right: Action Buttons -->
+                <div class="flex items-center gap-2">
+                    <a href="/" target="_blank" rel="noopener noreferrer" 
+                       class="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 hover:border-tea-yellow text-zinc-300 hover:text-tea-yellow text-xs font-semibold transition-all flex items-center gap-1.5" title="Open live public website">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                        <span class="hidden sm:inline">View Website</span>
+                    </a>
+
+                    <button onclick="saveAllChangesToDisk()" class="btn-yellow px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm" title="Save changes">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span class="hidden sm:inline">Save Sync</span>
+                    </button>
+
+                    <button onclick="handleLogout()" class="p-2 sm:px-3 sm:py-2 rounded-xl bg-zinc-900 border border-rose-900/50 hover:bg-rose-950/60 text-rose-400 text-xs font-semibold transition-all flex items-center gap-1.5" title="Logout of console">
+                        <i class="fa-solid fa-power-off"></i>
+                        <span class="hidden sm:inline">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area: Sidebar + Active Panel -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col md:flex-row gap-6">
+
+            <!-- Desktop Sidebar Navigation -->
+            <aside class="hidden md:block w-64 shrink-0">
+                <div class="sticky top-24 bg-tea-card border border-tea-border rounded-2xl p-3 space-y-1">
+                    <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                        Management Modules
+                    </div>
+
+                    <button onclick="switchTab('outlets')" id="tab-btn-outlets" 
+                            class="nav-tab-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-zinc-300 hover:text-tea-yellow hover:bg-zinc-900/80 transition-all active-tab">
+                        <span class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-store w-4 text-center"></i> Outlets & Locations
+                        </span>
+                        <span id="badge-outlets-count" class="bg-black/40 text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
+                    </button>
+
+                    <button onclick="switchTab('menu')" id="tab-btn-menu" 
+                            class="nav-tab-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-zinc-300 hover:text-tea-yellow hover:bg-zinc-900/80 transition-all">
+                        <span class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-mug-hot w-4 text-center"></i> Signature Menu
+                        </span>
+                        <span id="badge-menu-count" class="bg-black/40 text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
+                    </button>
+
+                    <button onclick="switchTab('leads')" id="tab-btn-leads" 
+                            class="nav-tab-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-zinc-300 hover:text-tea-yellow hover:bg-zinc-900/80 transition-all">
+                        <span class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-user-group w-4 text-center"></i> Franchise Leads
+                        </span>
+                        <span id="badge-leads-count" class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
+                    </button>
+
+                    <button onclick="switchTab('models')" id="tab-btn-models" 
+                            class="nav-tab-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-zinc-300 hover:text-tea-yellow hover:bg-zinc-900/80 transition-all">
+                        <span class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-boxes-packing w-4 text-center"></i> Franchise Formats
+                        </span>
+                        <span id="badge-models-count" class="bg-black/40 text-[10px] font-bold px-1.5 py-0.5 rounded-full">3</span>
+                    </button>
+
+                    <button onclick="switchTab('settings')" id="tab-btn-settings" 
+                            class="nav-tab-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-zinc-300 hover:text-tea-yellow hover:bg-zinc-900/80 transition-all">
+                        <span class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-sliders w-4 text-center"></i> Site & Alert Bar
+                        </span>
+                        <i class="fa-solid fa-gear text-[11px] text-zinc-500"></i>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content Panels -->
+            <main class="flex-1 w-full min-w-0">
+
+                <!-- ========================================== -->
+                <!-- PANEL 1: OUTLETS & LOCATIONS               -->
+                <!-- ========================================== -->
+                <div id="panel-outlets" class="tab-panel space-y-6">
+                    <!-- Top Action Bar -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-tea-card border border-tea-border p-4 rounded-2xl">
+                        <div>
+                            <h2 class="font-display font-extrabold text-xl text-white">Coimbatore Outlets</h2>
+                            <p class="text-xs text-zinc-400">Add, edit, or remove store locations displayed on the public website.</p>
+                        </div>
+                        <button onclick="openOutletModal()" class="btn-yellow px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shrink-0">
+                            <i class="fa-solid fa-plus"></i> Add New Outlet
+                        </button>
+                    </div>
+
+                    <!-- Outlets Grid Container -->
+                    <div id="admin-outlets-list" class="grid sm:grid-cols-2 gap-4">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- PANEL 2: SIGNATURE MENU ITEMS              -->
+                <!-- ========================================== -->
+                <div id="panel-menu" class="tab-panel hidden space-y-6">
+                    <!-- Top Action Bar -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-tea-card border border-tea-border p-4 rounded-2xl">
+                        <div>
+                            <h2 class="font-display font-extrabold text-xl text-white">Signature Menu Items</h2>
+                            <p class="text-xs text-zinc-400">Manage categories, prices, descriptions, and dietary tags.</p>
+                        </div>
+                        <button onclick="openMenuModal()" class="btn-yellow px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shrink-0">
+                            <i class="fa-solid fa-plus"></i> Add Menu Item
+                        </button>
+                    </div>
+
+                    <!-- Category Filter Tabs -->
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+                        <button onclick="filterAdminMenu('all')" class="menu-filter-btn px-3.5 py-1.5 rounded-xl bg-tea-yellow text-black font-bold">All Items</button>
+                        <button onclick="filterAdminMenu('kadak-chai')" class="menu-filter-btn px-3.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-300 font-medium hover:border-tea-yellow">Kadak Dum Chai</button>
+                        <button onclick="filterAdminMenu('coolers')" class="menu-filter-btn px-3.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-300 font-medium hover:border-tea-yellow">Coolers & Frappes</button>
+                        <button onclick="filterAdminMenu('street-bites')" class="menu-filter-btn px-3.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-300 font-medium hover:border-tea-yellow">Street Bites</button>
+                        <button onclick="filterAdminMenu('bakery')" class="menu-filter-btn px-3.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-300 font-medium hover:border-tea-yellow">Bakery</button>
+                    </div>
+
+                    <!-- Menu Grid Container -->
+                    <div id="admin-menu-list" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- PANEL 3: FRANCHISE LEADS & CRM             -->
+                <!-- ========================================== -->
+                <div id="panel-leads" class="tab-panel hidden space-y-6">
+                    
+                    <!-- Leads Metrics Cards -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="bg-tea-card border border-tea-border p-3.5 rounded-2xl">
+                            <p class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Inquiries</p>
+                            <h3 id="stat-leads-total" class="font-display font-black text-2xl text-white mt-1">0</h3>
+                        </div>
+                        <div class="bg-tea-card border border-tea-border p-3.5 rounded-2xl">
+                            <p class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">New Uncontacted</p>
+                            <h3 id="stat-leads-new" class="font-display font-black text-2xl text-amber-400 mt-1">0</h3>
+                        </div>
+                        <div class="bg-tea-card border border-tea-border p-3.5 rounded-2xl">
+                            <p class="text-[10px] font-bold text-sky-400 uppercase tracking-wider">In Discussion</p>
+                            <h3 id="stat-leads-eval" class="font-display font-black text-2xl text-sky-400 mt-1">0</h3>
+                        </div>
+                        <div class="bg-tea-card border border-tea-border p-3.5 rounded-2xl">
+                            <p class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Converted</p>
+                            <h3 id="stat-leads-converted" class="font-display font-black text-2xl text-emerald-400 mt-1">0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-tea-card border border-tea-border p-4 rounded-2xl">
+                        <div>
+                            <h2 class="font-display font-extrabold text-xl text-white">Franchise Inquiry Pipeline</h2>
+                            <p class="text-xs text-zinc-400">Applications submitted from website inquiry forms.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="exportLeadsToCSV()" class="px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-700 hover:border-tea-yellow text-zinc-200 hover:text-tea-yellow text-xs font-bold flex items-center gap-1.5 transition-all">
+                                <i class="fa-solid fa-file-csv text-emerald-400"></i> Export CSV
+                            </button>
+                            <button onclick="openLeadModal()" class="btn-yellow px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Add Lead
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Leads List -->
+                    <div id="admin-leads-list" class="space-y-3">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- PANEL 4: FRANCHISE FORMATS & MODELS        -->
+                <!-- ========================================== -->
+                <div id="panel-models" class="tab-panel hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-tea-card border border-tea-border p-4 rounded-2xl">
+                        <div>
+                            <h2 class="font-display font-extrabold text-xl text-white">Franchise Models & Investment Packages</h2>
+                            <p class="text-xs text-zinc-400">Update turnkey fees, floor area required, and payback expectations.</p>
+                        </div>
+                        <button onclick="openModelModal()" class="btn-yellow px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shrink-0">
+                            <i class="fa-solid fa-plus"></i> Add Format
+                        </button>
+                    </div>
+
+                    <div id="admin-models-list" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+
+                <!-- ========================================== -->
+                <!-- PANEL 5: WEBSITE SETTINGS & ANNOUNCEMENTS  -->
+                <!-- ========================================== -->
+                <div id="panel-settings" class="tab-panel hidden space-y-6">
+                    <div class="bg-tea-card border border-tea-border p-6 rounded-2xl space-y-6">
+                        <div class="border-b border-zinc-800 pb-4">
+                            <h2 class="font-display font-extrabold text-xl text-white">Global Website Settings</h2>
+                            <p class="text-xs text-zinc-400">Control the top alert banner, corporate contact details, and hero counters.</p>
+                        </div>
+
+                        <form id="settings-form" onsubmit="handleSaveSettings(event)" class="space-y-5">
+                            <!-- Alert Bar Settings -->
+                            <div class="space-y-4">
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-tea-yellow flex items-center gap-2">
+                                    <i class="fa-solid fa-bullhorn"></i> Top Announcement Banner
+                                </h3>
+                                <div class="grid sm:grid-cols-4 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-zinc-300 mb-1">Badge Tag</label>
+                                        <input type="text" id="set-announce-badge" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-sm focus:border-tea-yellow">
+                                    </div>
+                                    <div class="sm:col-span-3">
+                                        <label class="block text-xs font-bold text-zinc-300 mb-1">Announcement Text</label>
+                                        <input type="text" id="set-announce-text" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-sm focus:border-tea-yellow">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contact Info -->
+                            <div class="space-y-4 pt-4 border-t border-zinc-800">
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-tea-yellow flex items-center gap-2">
+                                    <i class="fa-solid fa-address-book"></i> Official Corporate Contact
+                                </h3>
+                                <div class="grid sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-zinc-300 mb-1">Franchise Desk Phone</label>
+                                        <input type="text" id="set-phone" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-sm focus:border-tea-yellow">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-zinc-300 mb-1">Franchise Desk Email</label>
+                                        <input type="email" id="set-email" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-sm focus:border-tea-yellow">
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="block text-xs font-bold text-zinc-300 mb-1">Head Office Address</label>
+                                        <input type="text" id="set-headoffice" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-sm focus:border-tea-yellow">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hero Statistics -->
+                            <div class="space-y-4 pt-4 border-t border-zinc-800">
+                                <h3 class="text-xs font-bold uppercase tracking-wider text-tea-yellow flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-line"></i> Hero Statistics Badges
+                                </h3>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-zinc-300 mb-1">Outlets Count</label>
+                                        <input type="text" id="set-stat-outlets" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-sm focus:border-tea-yellow">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-zinc-300 mb-1">Daily Cups</label>
+                                        <input type="text" id="set-stat-cups" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-sm focus:border-tea-yellow">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-zinc-300 mb-1">Gross Margin</label>
+                                        <input type="text" id="set-stat-margin" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-sm focus:border-tea-yellow">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-zinc-300 mb-1">Setup Speed</label>
+                                        <input type="text" id="set-stat-setup" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-sm focus:border-tea-yellow">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 border-t border-zinc-800 flex items-center justify-between">
+                                <button type="button" onclick="resetToFactoryDefaults()" class="px-3.5 py-2 rounded-xl border border-rose-800 bg-rose-950/40 text-rose-400 text-xs font-semibold hover:bg-rose-900/60 transition-colors">
+                                    <i class="fa-solid fa-rotate-left mr-1"></i> Reset Factory Defaults
+                                </button>
+                                <button type="submit" class="btn-yellow px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-md">
+                                    <i class="fa-solid fa-check mr-1"></i> Save Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 3. MOBILE BOTTOM NAVIGATION BAR            -->
+        <!-- ========================================== -->
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-tea-pitch/98 border-t border-tea-border px-3 py-2 flex items-center justify-around backdrop-blur-xl">
+            <button onclick="switchTab('outlets')" id="bot-tab-outlets" class="flex flex-col items-center gap-1 text-[11px] font-bold text-tea-yellow active-bottom-tab">
+                <i class="fa-solid fa-store text-base"></i>
+                <span>Outlets</span>
+            </button>
+            <button onclick="switchTab('menu')" id="bot-tab-menu" class="flex flex-col items-center gap-1 text-[11px] font-bold text-zinc-400 hover:text-tea-yellow">
+                <i class="fa-solid fa-mug-hot text-base"></i>
+                <span>Menu</span>
+            </button>
+            <button onclick="switchTab('leads')" id="bot-tab-leads" class="relative flex flex-col items-center gap-1 text-[11px] font-bold text-zinc-400 hover:text-tea-yellow">
+                <span id="bot-leads-badge" class="absolute -top-1 right-2 w-2 h-2 rounded-full bg-rose-500"></span>
+                <i class="fa-solid fa-user-group text-base"></i>
+                <span>Leads</span>
+            </button>
+            <button onclick="switchTab('models')" id="bot-tab-models" class="flex flex-col items-center gap-1 text-[11px] font-bold text-zinc-400 hover:text-tea-yellow">
+                <i class="fa-solid fa-boxes-packing text-base"></i>
+                <span>Models</span>
+            </button>
+            <button onclick="switchTab('settings')" id="bot-tab-settings" class="flex flex-col items-center gap-1 text-[11px] font-bold text-zinc-400 hover:text-tea-yellow">
+                <i class="fa-solid fa-sliders text-base"></i>
+                <span>Settings</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 4. MODALS (ADD / EDIT)                     -->
+    <!-- ========================================== -->
+
+    <!-- OUTLET MODAL -->
+    <div id="outlet-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
+        <div class="bg-tea-card border-2 border-tea-yellow/40 rounded-3xl p-6 w-full max-w-lg my-8 space-y-4">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h3 id="outlet-modal-title" class="font-display font-black text-xl text-white">Add Coimbatore Outlet</h3>
+                <button onclick="closeOutletModal()" class="text-zinc-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="outlet-form" onsubmit="handleSaveOutlet(event)" class="space-y-3.5 text-xs">
+                <input type="hidden" id="outlet-id">
+                <div>
+                    <label class="block font-bold text-zinc-300 mb-1">Outlet Name *</label>
+                    <input type="text" id="outlet-name" required placeholder="e.g. Gandhipuram Junction Express" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Area / Locality *</label>
+                        <input type="text" id="outlet-area" required placeholder="e.g. Gandhipuram" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Operational Status</label>
+                        <select id="outlet-status" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                            <option value="Open Now">Open Now</option>
+                            <option value="Opening Soon">Opening Soon</option>
+                            <option value="Site Finalized">Site Finalized</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-zinc-300 mb-1">Complete Address *</label>
+                    <input type="text" id="outlet-address" required placeholder="Full street address in Coimbatore" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Operating Hours</label>
+                        <input type="text" id="outlet-timing" placeholder="e.g. 6:00 AM – 11:00 PM" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Contact Phone</label>
+                        <input type="text" id="outlet-phone" placeholder="+91 98432 10100" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Format / Store Type</label>
+                        <input type="text" id="outlet-type" placeholder="e.g. Express Café & Takeaway" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Badge Tag</label>
+                        <input type="text" id="outlet-badge" placeholder="e.g. ⭐ Flagship, 🔥 High Footfall" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-zinc-300 mb-1">Features (comma-separated)</label>
+                    <input type="text" id="outlet-features" placeholder="Kulhad Dum Chai, Bun Maska, Drive-by Chai, AC Seating" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                </div>
+                <div class="pt-3 border-t border-zinc-800 flex justify-end gap-2">
+                    <button type="button" onclick="closeOutletModal()" class="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold">Cancel</button>
+                    <button type="submit" class="btn-yellow px-5 py-2 rounded-xl font-bold uppercase tracking-wider">Save Outlet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MENU ITEM MODAL -->
+    <div id="menu-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
+        <div class="bg-tea-card border-2 border-tea-yellow/40 rounded-3xl p-6 w-full max-w-lg my-8 space-y-4">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h3 id="menu-modal-title" class="font-display font-black text-xl text-white">Add Menu Item</h3>
+                <button onclick="closeMenuModal()" class="text-zinc-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="menu-form" onsubmit="handleSaveMenuItem(event)" class="space-y-3.5 text-xs">
+                <input type="hidden" id="menu-id">
+                <div>
+                    <label class="block font-bold text-zinc-300 mb-1">Item Name *</label>
+                    <input type="text" id="menu-name" required placeholder="e.g. Special Kadak Dum Chai" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Category *</label>
+                        <select id="menu-category" required class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                            <option value="kadak-chai">Kadak Dum Chai</option>
+                            <option value="coolers">Coolers & Frappes</option>
+                            <option value="street-bites">Street Bites</option>
+                            <option value="bakery">Bakery & Biscuits</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Price (with ₹ symbol) *</label>
+                        <input type="text" id="menu-price" required placeholder="₹25" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Badge Tag</label>
+                        <input type="text" id="menu-tag" placeholder="e.g. Bestseller, Signature, Trending" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Calorie Count</label>
+                        <input type="text" id="menu-calories" placeholder="e.g. 95 kcal" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-zinc-300 mb-1">Description</label>
+                    <textarea id="menu-desc" rows="2" placeholder="Briefly describe taste notes and ingredients..." class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs"></textarea>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="menu-veg" checked class="w-4 h-4 text-tea-yellow rounded focus:ring-tea-yellow">
+                    <label for="menu-veg" class="text-xs font-semibold text-zinc-300">100% Vegetarian Item</label>
+                </div>
+                <div class="pt-3 border-t border-zinc-800 flex justify-end gap-2">
+                    <button type="button" onclick="closeMenuModal()" class="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold">Cancel</button>
+                    <button type="submit" class="btn-yellow px-5 py-2 rounded-xl font-bold uppercase tracking-wider">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LEAD MODAL (MANUAL ADD) -->
+    <div id="lead-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
+        <div class="bg-tea-card border-2 border-tea-yellow/40 rounded-3xl p-6 w-full max-w-lg my-8 space-y-4">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h3 class="font-display font-black text-xl text-white">Record Franchise Inquiry</h3>
+                <button onclick="closeLeadModal()" class="text-zinc-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="lead-form" onsubmit="handleSaveManualLead(event)" class="space-y-3.5 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Applicant Name *</label>
+                        <input type="text" id="lead-name" required placeholder="Full Name" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Phone Number *</label>
+                        <input type="tel" id="lead-phone" required placeholder="+91 98432 00000" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Email Address</label>
+                        <input type="email" id="lead-email" placeholder="name@email.com" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Target Location *</label>
+                        <input type="text" id="lead-location" required placeholder="e.g. Gandhipuram, Peelamedu" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Preferred Model</label>
+                        <select id="lead-model" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                            <option value="Café Classic Model (200-450 sq.ft)">Café Classic (200-450 sq.ft)</option>
+                            <option value="Kiosk Express (80-150 sq.ft)">Kiosk Express (80-150 sq.ft)</option>
+                            <option value="Lounge & Diner (500+ sq.ft)">Lounge & Diner (500+ sq.ft)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-zinc-300 mb-1">Budget</label>
+                        <input type="text" id="lead-budget" placeholder="e.g. ₹8 - 12 Lakhs" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-bold text-zinc-300 mb-1">Commercial Space Status</label>
+                    <input type="text" id="lead-space" placeholder="e.g. Own building / Rented shop identified" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs">
+                </div>
+                <div>
+                    <label class="block font-bold text-zinc-300 mb-1">Notes / Remarks</label>
+                    <textarea id="lead-remarks" rows="2" placeholder="Discussion notes..." class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-white focus:border-tea-yellow text-xs"></textarea>
+                </div>
+                <div class="pt-3 border-t border-zinc-800 flex justify-end gap-2">
+                    <button type="button" onclick="closeLeadModal()" class="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold">Cancel</button>
+                    <button type="submit" class="btn-yellow px-5 py-2 rounded-xl font-bold uppercase tracking-wider">Save Inquiry</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 5. TOAST NOTIFICATION                      -->
+    <!-- ========================================== -->
+    <div id="toast" class="fixed bottom-24 md:bottom-8 right-6 z-50 hidden items-center gap-2 px-4 py-3 rounded-2xl bg-zinc-900 border border-tea-yellow text-white text-xs font-bold shadow-2xl transition-all">
+        <i id="toast-icon" class="fa-solid fa-check text-tea-yellow"></i>
+        <span id="toast-msg">Changes saved successfully!</span>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 6. ADMIN APPLICATION JAVASCRIPT LOGIC      -->
+    <!-- ========================================== -->
+    <script>
+        const MASTER_PASSWORD = "Siva@07268";
+        let APP_DATA = null;
+        let activeMenuCategory = "all";
+
+        // 1. AUTHENTICATION LOGIC
+        function initAuth() {
+            const isAuth = sessionStorage.getItem("ttm_admin_auth") === "true";
+            if (isAuth) {
+                unlockDashboard();
+            } else {
+                document.getElementById("login-screen").classList.remove("hidden");
+                document.getElementById("login-screen").classList.add("flex");
+                document.getElementById("admin-dashboard").classList.add("hidden");
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const passInput = document.getElementById("admin-pass");
+            const errorMsg = document.getElementById("login-error");
+
+            if (passInput.value === MASTER_PASSWORD) {
+                sessionStorage.setItem("ttm_admin_auth", "true");
+                errorMsg.classList.add("hidden");
+                unlockDashboard();
+                showToast("Admin Console Unlocked!", "fa-lock-open");
+            } else {
+                errorMsg.classList.remove("hidden");
+                passInput.focus();
+                passInput.classList.add("border-rose-500");
+                setTimeout(() => passInput.classList.remove("border-rose-500"), 2000);
+            }
+        }
+
+        function togglePasswordVisibility() {
+            const input = document.getElementById("admin-pass");
+            const icon = document.getElementById("pass-eye-icon");
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
+
+        function handleLogout() {
+            sessionStorage.removeItem("ttm_admin_auth");
+            document.getElementById("admin-dashboard").classList.add("hidden");
+            document.getElementById("login-screen").classList.remove("hidden");
+            document.getElementById("login-screen").classList.add("flex");
+            document.getElementById("admin-pass").value = "";
+            showToast("Logged out successfully", "fa-power-off");
+        }
+
+        function unlockDashboard() {
+            document.getElementById("login-screen").classList.add("hidden");
+            document.getElementById("login-screen").classList.remove("flex");
+            document.getElementById("admin-dashboard").classList.remove("hidden");
+            loadAllData();
+        }
+
+        // 2. DATA LOADING & SYNCHRONIZATION
+        async function loadAllData() {
+            // First check local storage cache
+            const localSaved = localStorage.getItem("ttm_data");
+            if (localSaved) {
+                try {
+                    APP_DATA = JSON.parse(localSaved);
+                } catch (err) {}
+            }
+
+            // Fetch from server /api/data for latest
+            try {
+                const res = await fetch("/api/data");
+                if (res.ok) {
+                    APP_DATA = await res.json();
+                    localStorage.setItem("ttm_data", JSON.stringify(APP_DATA));
+                }
+            } catch (err) {
+                console.log("Using cached localStorage data");
+            }
+
+            if (!APP_DATA) {
+                APP_DATA = { settings: {}, outlets: [], menu: [], franchiseModels: [], leads: [] };
+            }
+
+            renderAllModules();
+        }
+
+        async function saveAllChangesToDisk() {
+            localStorage.setItem("ttm_data", JSON.stringify(APP_DATA));
+            const syncStatus = document.getElementById("sync-status");
+            if (syncStatus) syncStatus.textContent = "Saving...";
+
+            try {
+                const res = await fetch("/api/save", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(APP_DATA)
+                });
+                if (res.ok) {
+                    if (syncStatus) syncStatus.textContent = "Live Connected";
+                    showToast("All changes synced and live on website!");
+                }
+            } catch (err) {
+                if (syncStatus) syncStatus.textContent = "Cached Locally";
+                showToast("Saved to browser storage!", "fa-database");
+            }
+
+            // Also broadcast storage event for open website tabs
+            window.dispatchEvent(new Event("storage"));
+        }
+
+        function renderAllModules() {
+            renderOutletsList();
+            renderMenuList();
+            renderLeadsList();
+            renderModelsList();
+            populateSettingsForm();
+            updateBadges();
+        }
+
+        function updateBadges() {
+            document.getElementById("badge-outlets-count").textContent = (APP_DATA.outlets || []).length;
+            document.getElementById("badge-menu-count").textContent = (APP_DATA.menu || []).length;
+            
+            const newLeadsCount = (APP_DATA.leads || []).filter(l => l.status === "New").length;
+            const leadsBadge = document.getElementById("badge-leads-count");
+            leadsBadge.textContent = newLeadsCount;
+            if (newLeadsCount === 0) {
+                leadsBadge.classList.replace("bg-rose-500", "bg-black/40");
+            } else {
+                leadsBadge.classList.replace("bg-black/40", "bg-rose-500");
+            }
+
+            const botLeadsBadge = document.getElementById("bot-leads-badge");
+            if (botLeadsBadge) {
+                botLeadsBadge.style.display = newLeadsCount > 0 ? "block" : "none";
+            }
+        }
+
+        // 3. TAB SWITCHING
+        function switchTab(tabName) {
+            document.querySelectorAll(".tab-panel").forEach(p => p.classList.add("hidden"));
+            document.getElementById(`panel-${tabName}`).classList.remove("hidden");
+
+            // Desktop tab styling
+            document.querySelectorAll(".nav-tab-btn").forEach(b => b.classList.remove("active-tab"));
+            const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+            if (activeBtn) activeBtn.classList.add("active-tab");
+
+            // Mobile bottom tab styling
+            document.querySelectorAll("nav button").forEach(b => {
+                b.classList.remove("text-tea-yellow", "active-bottom-tab");
+                b.classList.add("text-zinc-400");
+            });
+            const activeBot = document.getElementById(`bot-tab-${tabName}`);
+            if (activeBot) {
+                activeBot.classList.remove("text-zinc-400");
+                activeBot.classList.add("text-tea-yellow", "active-bottom-tab");
+            }
+        }
+
+        // 4. OUTLETS MODULE LOGIC
+        function renderOutletsList() {
+            const container = document.getElementById("admin-outlets-list");
+            if (!container) return;
+
+            const outlets = APP_DATA.outlets || [];
+            if (outlets.length === 0) {
+                container.innerHTML = `<div class="col-span-2 text-center py-12 text-zinc-500 bg-tea-card rounded-2xl border border-zinc-800">No outlets found. Click "Add New Outlet" to create one.</div>`;
+                return;
+            }
+
+            container.innerHTML = outlets.map((outlet, index) => {
+                const isOpen = outlet.status === "Open Now";
+                return `
+                <div class="bg-tea-card border border-tea-border hover:border-tea-yellow/50 p-5 rounded-2xl flex flex-col justify-between transition-all space-y-3">
+                    <div>
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-tea-yellow bg-tea-yellow/10 border border-tea-yellow/20 px-2 py-0.5 rounded">
+                                    ${outlet.area}
+                                </span>
+                                <h3 class="font-display font-black text-lg text-white mt-1.5 leading-snug">${outlet.name}</h3>
+                            </div>
+                            <button onclick="toggleOutletStatus('${outlet.id}')" class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 border ${isOpen ? 'bg-emerald-950/80 text-emerald-400 border-emerald-500/40' : 'bg-amber-950/80 text-amber-400 border-amber-500/40'}" title="Click to toggle status">
+                                ${outlet.status}
+                            </button>
+                        </div>
+
+                        <p class="text-xs text-zinc-400 mt-2 flex items-start gap-1.5">
+                            <i class="fa-solid fa-location-dot text-tea-yellow mt-0.5"></i>
+                            <span>${outlet.address}</span>
+                        </p>
+                        <p class="text-xs text-zinc-400 mt-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock text-tea-yellow"></i>
+                            <span>${outlet.timing}</span>
+                        </p>
+                        <p class="text-xs text-zinc-400 mt-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-phone text-tea-yellow"></i>
+                            <span>${outlet.phone}</span>
+                        </p>
+
+                        ${outlet.features ? `
+                        <div class="flex flex-wrap gap-1.5 pt-3">
+                            ${(outlet.features || []).map(f => `<span class="bg-zinc-900 text-[10px] text-zinc-300 px-2 py-0.5 rounded border border-zinc-800">${f}</span>`).join('')}
+                        </div>` : ''}
+                    </div>
+
+                    <div class="pt-3 border-t border-zinc-800 flex items-center justify-between">
+                        <span class="text-[10px] font-semibold text-zinc-500">ID: ${outlet.id}</span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="editOutlet('${outlet.id}')" class="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-700 hover:border-tea-yellow text-zinc-200 hover:text-tea-yellow text-xs font-bold transition-all">
+                                <i class="fa-solid fa-pen-to-square mr-1"></i> Edit
+                            </button>
+                            <button onclick="deleteOutlet('${outlet.id}')" class="px-3 py-1.5 rounded-xl bg-rose-950/40 border border-rose-800/60 hover:bg-rose-900/60 text-rose-400 text-xs font-bold transition-all">
+                                <i class="fa-solid fa-trash-can mr-1"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleOutletStatus(id) {
+            const outlet = APP_DATA.outlets.find(o => o.id === id);
+            if (outlet) {
+                outlet.status = outlet.status === "Open Now" ? "Opening Soon" : "Open Now";
+                outlet.statusColor = outlet.status === "Open Now" 
+                    ? "text-emerald-400 bg-emerald-950/60 border-emerald-800"
+                    : "text-amber-400 bg-amber-950/60 border-amber-800";
+                saveAllChangesToDisk();
+                renderOutletsList();
+                showToast(`Updated ${outlet.name} status to ${outlet.status}`);
+            }
+        }
+
+        function openOutletModal() {
+            document.getElementById("outlet-id").value = "";
+            document.getElementById("outlet-modal-title").textContent = "Add Coimbatore Outlet";
+            document.getElementById("outlet-form").reset();
+            document.getElementById("outlet-modal").classList.remove("hidden");
+            document.getElementById("outlet-modal").classList.add("flex");
+        }
+
+        function closeOutletModal() {
+            document.getElementById("outlet-modal").classList.add("hidden");
+            document.getElementById("outlet-modal").classList.remove("flex");
+        }
+
+        function editOutlet(id) {
+            const outlet = APP_DATA.outlets.find(o => o.id === id);
+            if (!outlet) return;
+
+            document.getElementById("outlet-id").value = outlet.id;
+            document.getElementById("outlet-modal-title").textContent = "Edit Outlet Details";
+            document.getElementById("outlet-name").value = outlet.name || "";
+            document.getElementById("outlet-area").value = outlet.area || "";
+            document.getElementById("outlet-status").value = outlet.status || "Open Now";
+            document.getElementById("outlet-address").value = outlet.address || "";
+            document.getElementById("outlet-timing").value = outlet.timing || "";
+            document.getElementById("outlet-phone").value = outlet.phone || "";
+            document.getElementById("outlet-type").value = outlet.type || "";
+            document.getElementById("outlet-badge").value = outlet.badge || "";
+            document.getElementById("outlet-features").value = (outlet.features || []).join(", ");
+
+            document.getElementById("outlet-modal").classList.remove("hidden");
+            document.getElementById("outlet-modal").classList.add("flex");
+        }
+
+        function handleSaveOutlet(e) {
+            e.preventDefault();
+            const id = document.getElementById("outlet-id").value;
+            const name = document.getElementById("outlet-name").value.trim();
+            const area = document.getElementById("outlet-area").value.trim();
+            const status = document.getElementById("outlet-status").value;
+            const address = document.getElementById("outlet-address").value.trim();
+            const timing = document.getElementById("outlet-timing").value.trim() || "6:00 AM – 11:00 PM";
+            const phone = document.getElementById("outlet-phone").value.trim() || "+91 98432 10100";
+            const type = document.getElementById("outlet-type").value.trim() || "Express Chai & Bites";
+            const badge = document.getElementById("outlet-badge").value.trim() || "⭐ Popular Hub";
+            const featuresStr = document.getElementById("outlet-features").value;
+            const features = featuresStr ? featuresStr.split(",").map(f => f.trim()).filter(Boolean) : ["Kulhad Dum Chai", "Fast Service"];
+
+            if (id) {
+                // Update
+                const index = APP_DATA.outlets.findIndex(o => o.id === id);
+                if (index !== -1) {
+                    APP_DATA.outlets[index] = {
+                        ...APP_DATA.outlets[index],
+                        name, area, status, address, timing, phone, type, badge, features,
+                        statusColor: status === "Open Now" ? "text-emerald-400 bg-emerald-950/60 border-emerald-800" : "text-amber-400 bg-amber-950/60 border-amber-800"
+                    };
+                }
+            } else {
+                // Add new
+                const newId = area.toLowerCase().replace(/[^a-z0-9]/g, "-") + "-" + Math.floor(100 + Math.random() * 900);
+                APP_DATA.outlets.push({
+                    id: newId,
+                    name, area, status, address, timing, phone, type, badge, features,
+                    rating: "4.9",
+                    reviews: "New Hub",
+                    mapQuery: encodeURIComponent(name + " " + address),
+                    statusColor: status === "Open Now" ? "text-emerald-400 bg-emerald-950/60 border-emerald-800" : "text-amber-400 bg-amber-950/60 border-amber-800"
+                });
+            }
+
+            closeOutletModal();
+            saveAllChangesToDisk();
+            renderOutletsList();
+            updateBadges();
+            showToast("Outlet saved successfully!");
+        }
+
+        function deleteOutlet(id) {
+            const outlet = APP_DATA.outlets.find(o => o.id === id);
+            if (!outlet) return;
+            if (confirm(`Are you sure you want to delete "${outlet.name}" from the website?`)) {
+                APP_DATA.outlets = APP_DATA.outlets.filter(o => o.id !== id);
+                saveAllChangesToDisk();
+                renderOutletsList();
+                updateBadges();
+                showToast(`Deleted "${outlet.name}"`);
+            }
+        }
+
+        // 5. MENU MODULE LOGIC
+        function filterAdminMenu(category) {
+            activeMenuCategory = category;
+            document.querySelectorAll(".menu-filter-btn").forEach(b => {
+                b.classList.remove("bg-tea-yellow", "text-black", "font-bold");
+                b.classList.add("bg-zinc-900", "border", "border-zinc-700", "text-zinc-300");
+            });
+            event.target.classList.remove("bg-zinc-900", "border", "border-zinc-700", "text-zinc-300");
+            event.target.classList.add("bg-tea-yellow", "text-black", "font-bold");
+            renderMenuList();
+        }
+
+        function renderMenuList() {
+            const container = document.getElementById("admin-menu-list");
+            if (!container) return;
+
+            let items = APP_DATA.menu || [];
+            if (activeMenuCategory !== "all") {
+                items = items.filter(m => m.category === activeMenuCategory);
+            }
+
+            if (items.length === 0) {
+                container.innerHTML = `<div class="col-span-3 text-center py-12 text-zinc-500 bg-tea-card rounded-2xl border border-zinc-800">No items found in this category. Click "Add Menu Item" to add one.</div>`;
+                return;
+            }
+
+            container.innerHTML = items.map(item => `
+            <div class="bg-tea-card border border-tea-border hover:border-tea-yellow/40 p-4 rounded-2xl flex flex-col justify-between transition-all space-y-3">
+                <div>
+                    <div class="flex items-start justify-between gap-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
+                            ${item.category}
+                        </span>
+                        <span class="font-display font-black text-base text-tea-yellow">${item.price}</span>
+                    </div>
+
+                    <h4 class="font-display font-black text-base text-white mt-2 leading-tight">${item.name}</h4>
+                    <p class="text-xs text-zinc-400 mt-1 line-clamp-2">${item.desc || ""}</p>
+                    
+                    <div class="flex items-center gap-2 pt-3 text-[10px] font-semibold text-zinc-400">
+                        ${item.veg ? '<span class="text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded">🟢 100% Veg</span>' : '<span class="text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded">Non-Veg</span>'}
+                        ${item.calories ? `<span>• ${item.calories}</span>` : ''}
+                        ${item.tag ? `<span class="bg-tea-yellow/10 text-tea-yellow px-1.5 py-0.5 rounded font-bold">${item.tag}</span>` : ''}
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t border-zinc-800 flex justify-end gap-2">
+                    <button onclick="editMenuItem('${item.id}')" class="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-700 hover:border-tea-yellow text-zinc-200 hover:text-tea-yellow text-xs font-bold transition-all">
+                        <i class="fa-solid fa-pen-to-square mr-1"></i> Edit
+                    </button>
+                    <button onclick="deleteMenuItem('${item.id}')" class="px-3 py-1.5 rounded-xl bg-rose-950/40 border border-rose-800/60 hover:bg-rose-900/60 text-rose-400 text-xs font-bold transition-all">
+                        <i class="fa-solid fa-trash-can mr-1"></i> Delete
+                    </button>
+                </div>
+            </div>`).join('');
+        }
+
+        function openMenuModal() {
+            document.getElementById("menu-id").value = "";
+            document.getElementById("menu-modal-title").textContent = "Add Menu Item";
+            document.getElementById("menu-form").reset();
+            document.getElementById("menu-veg").checked = true;
+            document.getElementById("menu-modal").classList.remove("hidden");
+            document.getElementById("menu-modal").classList.add("flex");
+        }
+
+        function closeMenuModal() {
+            document.getElementById("menu-modal").classList.add("hidden");
+            document.getElementById("menu-modal").classList.remove("flex");
+        }
+
+        function editMenuItem(id) {
+            const item = APP_DATA.menu.find(m => String(m.id) === String(id));
+            if (!item) return;
+
+            document.getElementById("menu-id").value = item.id;
+            document.getElementById("menu-modal-title").textContent = "Edit Menu Item";
+            document.getElementById("menu-name").value = item.name || "";
+            document.getElementById("menu-category").value = item.category || "kadak-chai";
+            document.getElementById("menu-price").value = item.price || "";
+            document.getElementById("menu-tag").value = item.tag || "";
+            document.getElementById("menu-calories").value = item.calories || "";
+            document.getElementById("menu-desc").value = item.desc || "";
+            document.getElementById("menu-veg").checked = item.veg !== false;
+
+            document.getElementById("menu-modal").classList.remove("hidden");
+            document.getElementById("menu-modal").classList.add("flex");
+        }
+
+        function handleSaveMenuItem(e) {
+            e.preventDefault();
+            const id = document.getElementById("menu-id").value;
+            const name = document.getElementById("menu-name").value.trim();
+            const category = document.getElementById("menu-category").value;
+            let price = document.getElementById("menu-price").value.trim();
+            if (!price.startsWith("₹")) price = "₹" + price;
+            const tag = document.getElementById("menu-tag").value.trim();
+            const calories = document.getElementById("menu-calories").value.trim();
+            const desc = document.getElementById("menu-desc").value.trim();
+            const veg = document.getElementById("menu-veg").checked;
+
+            if (id) {
+                const index = APP_DATA.menu.findIndex(m => String(m.id) === String(id));
+                if (index !== -1) {
+                    APP_DATA.menu[index] = { ...APP_DATA.menu[index], name, category, price, tag, calories, desc, veg };
+                }
+            } else {
+                const newId = "m-" + Date.now();
+                APP_DATA.menu.push({ id: newId, name, category, price, tag, calories, desc, veg, icon: "fa-mug-hot" });
+            }
+
+            closeMenuModal();
+            saveAllChangesToDisk();
+            renderMenuList();
+            updateBadges();
+            showToast("Menu item updated!");
+        }
+
+        function deleteMenuItem(id) {
+            const item = APP_DATA.menu.find(m => String(m.id) === String(id));
+            if (!item) return;
+            if (confirm(`Delete "${item.name}" from the menu?`)) {
+                APP_DATA.menu = APP_DATA.menu.filter(m => String(m.id) !== String(id));
+                saveAllChangesToDisk();
+                renderMenuList();
+                updateBadges();
+                showToast(`Removed "${item.name}"`);
+            }
+        }
+
+        // 6. LEADS MODULE LOGIC
+        function renderLeadsList() {
+            const container = document.getElementById("admin-leads-list");
+            if (!container) return;
+
+            const leads = APP_DATA.leads || [];
+
+            // Update stats
+            document.getElementById("stat-leads-total").textContent = leads.length;
+            document.getElementById("stat-leads-new").textContent = leads.filter(l => l.status === "New").length;
+            document.getElementById("stat-leads-eval").textContent = leads.filter(l => l.status === "Site Evaluation" || l.status === "In Discussion").length;
+            document.getElementById("stat-leads-converted").textContent = leads.filter(l => l.status === "Converted").length;
+
+            if (leads.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-zinc-500 bg-tea-card rounded-2xl border border-zinc-800">No franchise inquiries received yet.</div>`;
+                return;
+            }
+
+            container.innerHTML = leads.map((lead, idx) => {
+                const cleanPhone = (lead.phone || "").replace(/[^0-9]/g, "");
+                const waMessage = `Hello ${encodeURIComponent(lead.name)}, thank you for your interest in TEA MATES franchise (Lead ID: ${lead.id}). Let's discuss your preferred location at ${encodeURIComponent(lead.location)}.`;
+                const waUrl = `https://wa.me/${cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone}?text=${waMessage}`;
+
+                return `
+                <div class="bg-tea-card border border-tea-border hover:border-tea-yellow/40 p-5 rounded-2xl transition-all space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-800 pb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-9 h-9 rounded-full bg-tea-yellow text-black font-black flex items-center justify-center text-xs">
+                                ${lead.name ? lead.name.charAt(0).toUpperCase() : 'L'}
+                            </span>
+                            <div>
+                                <h4 class="font-display font-extrabold text-base text-white leading-tight">${lead.name}</h4>
+                                <span class="text-[11px] font-semibold text-zinc-400">ID: ${lead.id} • ${lead.date || 'Recent'}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <label class="text-[11px] text-zinc-400 font-semibold">Status:</label>
+                            <select onchange="changeLeadStatus('${lead.id}', this.value)" 
+                                    class="px-2.5 py-1 rounded-xl bg-zinc-900 border border-zinc-700 text-xs font-bold ${getLeadStatusClass(lead.status)}">
+                                <option value="New" ${lead.status === 'New' ? 'selected' : ''}>New</option>
+                                <option value="In Discussion" ${lead.status === 'In Discussion' ? 'selected' : ''}>In Discussion</option>
+                                <option value="Site Evaluation" ${lead.status === 'Site Evaluation' ? 'selected' : ''}>Site Evaluation</option>
+                                <option value="Converted" ${lead.status === 'Converted' ? 'selected' : ''}>Converted</option>
+                                <option value="Rejected" ${lead.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <div class="bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800/80">
+                            <span class="text-[10px] text-zinc-500 font-bold uppercase block">Phone</span>
+                            <span class="font-bold text-white">${lead.phone}</span>
+                        </div>
+                        <div class="bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800/80">
+                            <span class="text-[10px] text-zinc-500 font-bold uppercase block">Preferred Spot</span>
+                            <span class="font-bold text-tea-yellow">${lead.location}</span>
+                        </div>
+                        <div class="bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800/80">
+                            <span class="text-[10px] text-zinc-500 font-bold uppercase block">Model & Budget</span>
+                            <span class="font-bold text-white">${lead.model || 'Standard'} (${lead.budget || '₹8L+'})</span>
+                        </div>
+                        <div class="bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-800/80">
+                            <span class="text-[10px] text-zinc-500 font-bold uppercase block">Commercial Space</span>
+                            <span class="font-bold text-zinc-300">${lead.space || 'Evaluating'}</span>
+                        </div>
+                    </div>
+
+                    ${lead.remarks ? `<p class="text-xs text-zinc-400 italic bg-black/40 px-3 py-2 rounded-xl border border-zinc-800/50">"${lead.remarks}"</p>` : ''}
+
+                    <div class="pt-2 flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <a href="${waUrl}" target="_blank" rel="noopener noreferrer" 
+                               class="px-3.5 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 hover:bg-emerald-900 text-emerald-400 text-xs font-bold flex items-center gap-1.5 transition-all">
+                                <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
+                            </a>
+                            <a href="tel:${lead.phone}" 
+                               class="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-700 hover:border-tea-yellow text-zinc-200 hover:text-tea-yellow text-xs font-bold flex items-center gap-1.5 transition-all">
+                                <i class="fa-solid fa-phone text-xs"></i> Call
+                            </a>
+                        </div>
+                        <button onclick="deleteLead('${lead.id}')" class="px-3 py-1.5 rounded-xl bg-rose-950/40 border border-rose-800/60 hover:bg-rose-900/60 text-rose-400 text-xs font-bold transition-all">
+                            <i class="fa-solid fa-trash-can mr-1"></i> Delete
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function getLeadStatusClass(status) {
+            switch(status) {
+                case "New": return "text-amber-400 border-amber-500/40";
+                case "In Discussion": return "text-sky-400 border-sky-500/40";
+                case "Site Evaluation": return "text-purple-400 border-purple-500/40";
+                case "Converted": return "text-emerald-400 border-emerald-500/40";
+                case "Rejected": return "text-zinc-500 border-zinc-700";
+                default: return "text-white";
+            }
+        }
+
+        function changeLeadStatus(id, newStatus) {
+            const lead = APP_DATA.leads.find(l => l.id === id);
+            if (lead) {
+                lead.status = newStatus;
+                saveAllChangesToDisk();
+                renderLeadsList();
+                updateBadges();
+                showToast(`Lead ${id} status set to ${newStatus}`);
+            }
+        }
+
+        function deleteLead(id) {
+            if (confirm(`Delete lead "${id}"?`)) {
+                APP_DATA.leads = APP_DATA.leads.filter(l => l.id !== id);
+                saveAllChangesToDisk();
+                renderLeadsList();
+                updateBadges();
+                showToast("Lead inquiry removed.");
+            }
+        }
+
+        function openLeadModal() {
+            document.getElementById("lead-form").reset();
+            document.getElementById("lead-modal").classList.remove("hidden");
+            document.getElementById("lead-modal").classList.add("flex");
+        }
+
+        function closeLeadModal() {
+            document.getElementById("lead-modal").classList.add("hidden");
+            document.getElementById("lead-modal").classList.remove("flex");
+        }
+
+        function handleSaveManualLead(e) {
+            e.preventDefault();
+            const lead = {
+                id: "TTM-CB-" + Math.floor(1000 + Math.random() * 9000),
+                name: document.getElementById("lead-name").value.trim(),
+                phone: document.getElementById("lead-phone").value.trim(),
+                email: document.getElementById("lead-email").value.trim() || "N/A",
+                location: document.getElementById("lead-location").value.trim(),
+                model: document.getElementById("lead-model").value,
+                budget: document.getElementById("lead-budget").value.trim() || "₹8 - 12 Lakhs",
+                space: document.getElementById("lead-space").value.trim() || "Under Discussion",
+                remarks: document.getElementById("lead-remarks").value.trim(),
+                status: "New",
+                date: new Date().toLocaleString()
+            };
+
+            if (!APP_DATA.leads) APP_DATA.leads = [];
+            APP_DATA.leads.unshift(lead);
+            closeLeadModal();
+            saveAllChangesToDisk();
+            renderLeadsList();
+            updateBadges();
+            showToast("Franchise inquiry recorded!");
+        }
+
+        function exportLeadsToCSV() {
+            const leads = APP_DATA.leads || [];
+            if (leads.length === 0) {
+                alert("No leads to export.");
+                return;
+            }
+
+            let csvContent = "Lead ID,Name,Phone,Email,Location,Format,Budget,Commercial Space,Status,Date,Remarks\n";
+            leads.forEach(l => {
+                const row = [
+                    l.id,
+                    `"${(l.name || '').replace(/"/g, '""')}"`,
+                    `"${l.phone || ''}"`,
+                    `"${l.email || ''}"`,
+                    `"${(l.location || '').replace(/"/g, '""')}"`,
+                    `"${(l.model || '').replace(/"/g, '""')}"`,
+                    `"${l.budget || ''}"`,
+                    `"${(l.space || '').replace(/"/g, '""')}"`,
+                    `"${l.status || ''}"`,
+                    `"${l.date || ''}"`,
+                    `"${(l.remarks || '').replace(/"/g, '""')}"`
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `tea_mates_leads_${Date.now()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Exported leads to CSV!");
+        }
+
+        // 7. FRANCHISE MODELS MODULE
+        function renderModelsList() {
+            const container = document.getElementById("admin-models-list");
+            if (!container) return;
+
+            const models = APP_DATA.franchiseModels || [];
+            container.innerHTML = models.map(m => `
+            <div class="bg-tea-card border border-tea-border p-5 rounded-2xl flex flex-col justify-between space-y-4">
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-tea-yellow bg-tea-yellow/10 px-2 py-0.5 rounded border border-tea-yellow/20">
+                        ${m.tag || 'Package'}
+                    </span>
+                    <h3 class="font-display font-black text-xl text-white mt-2">${m.name}</h3>
+                    <div class="my-3">
+                        <div class="text-2xl font-black text-tea-yellow font-display">${m.cost}</div>
+                        <span class="text-[10px] text-zinc-400">${m.costSub || 'Setup Investment'}</span>
+                    </div>
+                    <ul class="space-y-1.5 text-xs text-zinc-300 border-t border-zinc-800 pt-3">
+                        <li>• Area: <strong>${m.area}</strong></li>
+                        <li>• Staff: <strong>${m.staff}</strong></li>
+                        <li>• Scope: <strong>${m.menuScope}</strong></li>
+                        <li>• Payback: <strong>${m.payback}</strong></li>
+                    </ul>
+                </div>
+            </div>`).join('');
+        }
+
+        // 8. SETTINGS MODULE
+        function populateSettingsForm() {
+            const s = APP_DATA.settings || {};
+            document.getElementById("set-announce-badge").value = s.announcementBadge || "Coimbatore";
+            document.getElementById("set-announce-text").value = s.announcementText || "";
+            document.getElementById("set-phone").value = s.contactPhone || "+91 98432 10100";
+            document.getElementById("set-email").value = s.contactEmail || "franchise@theteamates.in";
+            document.getElementById("set-headoffice").value = s.headOffice || "";
+            document.getElementById("set-stat-outlets").value = s.statOutlets || "6+ Outlets";
+            document.getElementById("set-stat-cups").value = s.statCups || "15,000+";
+            document.getElementById("set-stat-margin").value = s.statMargin || "65% - 70%";
+            document.getElementById("set-stat-setup").value = s.statSetup || "21 Days";
+        }
+
+        function handleSaveSettings(e) {
+            e.preventDefault();
+            APP_DATA.settings = {
+                announcementBadge: document.getElementById("set-announce-badge").value.trim(),
+                announcementText: document.getElementById("set-announce-text").value.trim(),
+                contactPhone: document.getElementById("set-phone").value.trim(),
+                contactEmail: document.getElementById("set-email").value.trim(),
+                headOffice: document.getElementById("set-headoffice").value.trim(),
+                statOutlets: document.getElementById("set-stat-outlets").value.trim(),
+                statCups: document.getElementById("set-stat-cups").value.trim(),
+                statMargin: document.getElementById("set-stat-margin").value.trim(),
+                statSetup: document.getElementById("set-stat-setup").value.trim(),
+            };
+            saveAllChangesToDisk();
+            showToast("Website settings updated and live!");
+        }
+
+        function resetToFactoryDefaults() {
+            if (confirm("Reset all settings and outlets back to factory defaults?")) {
+                localStorage.removeItem("ttm_data");
+                location.reload();
+            }
+        }
+
+        // 9. TOAST HELPER
+        function showToast(msg, icon = "fa-check") {
+            const toast = document.getElementById("toast");
+            const toastMsg = document.getElementById("toast-msg");
+            const toastIcon = document.getElementById("toast-icon");
+            if (!toast) return;
+
+            toastMsg.textContent = msg;
+            toastIcon.className = `fa-solid ${icon} text-tea-yellow`;
+            toast.classList.remove("hidden");
+            toast.classList.add("flex");
+
+            setTimeout(() => {
+                toast.classList.add("hidden");
+                toast.classList.remove("flex");
+            }, 3000);
+        }
+
+        // Init on page load
+        document.addEventListener("DOMContentLoaded", () => {
+            initAuth();
+        });
+    </script>
+</body>
+</html>
